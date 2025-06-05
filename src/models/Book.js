@@ -1,65 +1,93 @@
-class Book {
-    #isbn; // Private field for ISBN (modern JS)
+import mongoose from 'mongoose';
 
-    constructor(title, author, isbn) {
-        this.title = title;
-        this.author = author;
-        this.#isbn = isbn;
-        this.isBorrowed = false; // Default status
+const bookSchema = new mongoose.Schema({
+    title: {
+      type: String,
+      required: [true, 'Title is required'],
+      trim: true,
+      maxlength: [200, 'Title cannot exceed 200 characters']
+    },
+    author: {
+      type: String,
+      required: [true, 'Author is required'],
+      trim: true,
+      maxlength: [100, 'Author name cannot exceed 100 characters']
+    },
+    isbn: {
+      type: String,
+      required: [true, 'ISBN is required'],
+      unique: true,
+      trim: true,
+      validate: {
+        validator: function(v) {
+          // Basic ISBN validation (can be enhanced)
+          return /^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$/.test(v);
+        },
+        message: 'Invalid ISBN format'
+      }
+    },
+    isBorrowed: {
+      type: Boolean,
+      default: false
+    },
+    borrowedAt: {
+      type: Date,
+      default: null
+    },
+    returnedAt: {
+      type: Date,
+      default: null
     }
-
-    // Public getter for the private ISBN
-    get isbn() {
-        return this.#isbn;
+  }, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  });
+  
+  // Indexes
+  bookSchema.index({ isbn: 1 });
+  bookSchema.index({ title: 1 });
+  bookSchema.index({ author: 1 });
+  
+  // Virtual for borrowing status
+  bookSchema.virtual('status').get(function() {
+    return this.isBorrowed ? 'Borrowed' : 'Available';
+  });
+  
+  // Instance methods
+  bookSchema.methods.borrow = function() {
+    if (this.isBorrowed) {
+      return false;
     }
-
-    // Getter for title (optional, direct access is common in JS)
-    getTitle() {
-        return this.title;
+    this.isBorrowed = true;
+    this.borrowedAt = new Date();
+    return true;
+  };
+  
+  bookSchema.methods.returnBook = function() {
+    if (!this.isBorrowed) {
+      return false;
     }
-
-    // Setter for title (optional, direct modification is common)
-    setTitle(newTitle) {
-        this.title = newTitle;
-    }
-
-    // Getter for author
-    getAuthor() {
-        return this.author;
-    }
-
-    // Setter for author
-    setAuthor(newAuthor) {
-        this.author = newAuthor;
-    }
-
-    // Method to mark a book as borrowed
-    borrow() {
-        if (!this.isBorrowed) {
-            this.isBorrowed = true;
-            return true; // Successfully borrowed
-        }
-        return false; // Already borrowed
-    }
-
-    // Method to mark a book as returned
-    returnBook() {
-        if (this.isBorrowed) {
-            this.isBorrowed = false;
-            return true; // Successfully returned
-        }
-        return false; // Not borrowed
-    }
-
-    // Method to check if the book is borrowed
-    isBorrowedStatus() {
-        return this.isBorrowed;
-    }
-
-    // toString equivalent for logging/display
-    toString() {
-        return `Book: "${this.title}" by ${this.author} (ISBN: ${this.#isbn}) - Status: ${this.isBorrowed ? 'Borrowed' : 'Available'}`;
-    }
-}
-
-export default Book;
+    this.isBorrowed = false;
+    this.returnedAt = new Date();
+    return true;
+  };
+  
+  bookSchema.methods.isBorrowedStatus = function() {
+    return this.isBorrowed;
+  };
+  
+  // Static methods
+  bookSchema.statics.findByIsbn = function(isbn) {
+    return this.findOne({ isbn });
+  };
+  
+  bookSchema.statics.findAvailable = function() {
+    return this.find({ isBorrowed: false });
+  };
+  
+  bookSchema.statics.findBorrowed = function() {
+    return this.find({ isBorrowed: true });
+  };
+  
+  export default mongoose.model('Book', bookSchema);
