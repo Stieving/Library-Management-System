@@ -45,7 +45,6 @@ const bookSchema = new mongoose.Schema({
   });
   
   // Indexes
-  bookSchema.index({ isbn: 1 });
   bookSchema.index({ title: 1 });
   bookSchema.index({ author: 1 });
   
