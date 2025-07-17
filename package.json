@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "name": "my-lms-frontend",
   "private": true,
   "version": "0.0.0",
@@ -28,16 +27,4 @@
     "tailwindcss": "^3.4.17",
     "vite": "^7.0.4"
   }
-=======
-  "name": "library-management-system",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
->>>>>>> 91db7e928a820e39ab1b4d6c43c1a93282b0630e
 }
