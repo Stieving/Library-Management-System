@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // Corrected: '=>' changed to 'from'
 
 // Define your backend API base URL
 const API_BASE_URL = 'http://localhost:3000/api/books';
@@ -15,8 +15,9 @@ function App() {
     isbn: '',
     title: '',
     author: '',
-    publisher: '',
-    publicationYear: '',
+    publisher: '', // Re-added for UI
+    publicationYear: '', // Re-added for UI
+    // 'quantity' is intentionally not here as it's not part of the backend Book model for add/update
   });
   const [stats, setStats] = useState(null); // Stores book statistics from backend
 
@@ -27,22 +28,26 @@ function App() {
     setTimeout(() => setMessage(''), 5000);
   };
 
-  //API Integration Functions
+  // --- API Integration Functions ---
 
   // Fetches all books from the backend
   const handleGetAllBooks = async () => {
     setLoading(true);
     setMessage('');
+    setBooks([]); // Clear books before fetching
+    setSelectedBook(null); // Clear selected book
+    setStats(null); // Clear stats
+
     try {
       const response = await fetch(API_BASE_URL);
       const data = await response.json();
 
       if (response.ok) {
         setBooks(data.data); // Backend returns { success: true, count: ..., data: [...] }
-        showMessage('All books fetched successfully!', 'success');
+        showMessage('All books retrieved successfully!', 'success'); // Specific success message
       } else {
         // Handle API errors
-        showMessage(`Failed to fetch books: ${data.message || 'Unknown error'}`, 'error');
+        showMessage(`Failed to retrieve books: ${data.message || 'Unknown error'}`, 'error');
         console.error('Error fetching all books:', data);
       }
     } catch (error) {
@@ -58,7 +63,10 @@ function App() {
   const handleGetBookByIsbn = async () => {
     setLoading(true);
     setMessage('');
-    setSelectedBook(null);
+    setSelectedBook(null); // Clear previous selection
+    setBooks([]); // Clear all books list
+    setStats(null); // Clear stats
+
     if (!isbnInput) {
       showMessage('Please enter an ISBN.', 'error');
       setLoading(false);
@@ -70,7 +78,7 @@ function App() {
 
       if (response.ok) {
         setSelectedBook(data.data); // Backend returns { success: true, data: {...} }
-        showMessage(`Book with ISBN ${isbnInput} found.`, 'success');
+        showMessage(`Book with ISBN ${isbnInput} found successfully!`, 'success'); // Specific success message
       } else {
         showMessage(`Book with ISBN ${isbnInput} not found: ${data.message || 'Unknown error'}`, 'error');
         console.error('Error fetching book by ISBN:', data);
@@ -101,7 +109,8 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        // Send only fields relevant to the backend Book model
+        // Send only fields relevant to the backend Book model (isbn, title, author)
+        // Publisher, publicationYear, and quantity are NOT sent as they are not in the backend schema
         body: JSON.stringify({
           isbn: bookData.isbn,
           title: bookData.title,
@@ -111,10 +120,8 @@ function App() {
       const data = await response.json();
 
       if (response.ok) {
-        showMessage(`Book "${data.data.title}" added successfully!`, 'success');
-        // Refreshes the list of all books after adding
-        handleGetAllBooks();
-        setBookData({ isbn: '', title: '', author: '', publisher: '', publicationYear: '' }); // Clear form
+        showMessage(`Book added successfully!`, 'success'); // Specific success message
+        setBookData({ isbn: '', title: '', author: '', publisher: '', publicationYear: '' }); // Clear form, including re-added fields
       } else {
         showMessage(`Failed to add book: ${data.message || 'Unknown error'}`, 'error');
         console.error('Error adding book:', data);
@@ -147,9 +154,7 @@ function App() {
       const data = await response.json();
 
       if (response.ok) {
-        showMessage(data.message, 'success');
-        // Refreshes the list of all books to reflect the status change
-        handleGetAllBooks();
+        showMessage(`Book borrowed successfully!`, 'success'); // Specific success message
       } else {
         showMessage(`Failed to borrow book: ${data.message || 'Unknown error'}`, 'error');
         console.error('Error borrowing book:', data);
@@ -183,9 +188,7 @@ function App() {
       const data = await response.json();
 
       if (response.ok) {
-        showMessage(data.message, 'success');
-        // Refreshes the list of all books to reflect the status change
-        handleGetAllBooks();
+        showMessage(`Book returned successfully!`, 'success'); // Specific success message
       } else {
         showMessage(`Failed to return book: ${data.message || 'Unknown error'}`, 'error');
         console.error('Error returning book:', data);
@@ -213,6 +216,9 @@ function App() {
     const updatePayload = {};
     if (bookData.title) updatePayload.title = bookData.title;
     if (bookData.author) updatePayload.author = bookData.author;
+    // Publisher and Publication Year are NOT sent to the backend as they are not in the backend schema
+    // if (bookData.publisher) updatePayload.publisher = bookData.publisher;
+    // if (bookData.publicationYear) updatePayload.publicationYear = parseInt(bookData.publicationYear);
 
     try {
       const response = await fetch(`${API_BASE_URL}/${bookData.isbn}`, {
@@ -225,9 +231,7 @@ function App() {
       const data = await response.json();
 
       if (response.ok) {
-        showMessage(`Book with ISBN ${bookData.isbn} updated successfully!`, 'success');
-        // Refreshes the list of all books after updating
-        handleGetAllBooks();
+        showMessage(`Book updated successfully!`, 'success'); // Specific success message
         setBookData({ isbn: '', title: '', author: '', publisher: '', publicationYear: '' }); // Clear form
       } else {
         showMessage(`Failed to update book: ${data.message || 'Unknown error'}`, 'error');
@@ -257,9 +261,7 @@ function App() {
       const data = await response.json();
 
       if (response.ok) {
-        showMessage(data.message, 'success');
-        // Refreshes the list of all books after deleting
-        handleGetAllBooks();
+        showMessage(`Book deleted successfully!`, 'success'); // Specific success message
       } else {
         showMessage(`Failed to delete book: ${data.message || 'Unknown error'}`, 'error');
         console.error('Error deleting book:', data);
@@ -277,15 +279,18 @@ function App() {
   const handleGetBookStats = async () => {
     setLoading(true);
     setMessage('');
+    setBooks([]); // Clear all books list
+    setSelectedBook(null); // Clear selected book
+
     try {
       const response = await fetch(`${API_BASE_URL}/stats`);
       const data = await response.json();
 
       if (response.ok) {
         setStats(data.data); // Backend returns { success: true, data: { total, borrowed, available } }
-        showMessage('Book statistics fetched successfully!', 'success');
+        showMessage('Book statistics retrieved successfully!', 'success'); // Specific success message
       } else {
-        showMessage(`Failed to fetch book statistics: ${data.message || 'Unknown error'}`, 'error');
+        showMessage(`Failed to retrieve book statistics: ${data.message || 'Unknown error'}`, 'error');
         console.error('Error fetching book stats:', data);
       }
     } catch (error) {
@@ -296,10 +301,10 @@ function App() {
     }
   };
 
-  // Initial fetch of all books when the component mounts
-  useEffect(() => {
-    handleGetAllBooks();
-  }, []); 
+  // Initial fetch of all books when the component mounts - REMOVED for default empty state
+  // useEffect(() => {
+  //   handleGetAllBooks();
+  // }, []);
 
   // Render the UI
   return (
@@ -335,21 +340,22 @@ function App() {
             Get All Books
           </button>
 
-          <div className="flex flex-col sm:flex-row gap-2">
+          {/* Combined ISBN Input and Get Book by ISBN Button */}
+          <div className="relative col-span-1 sm:col-span-2 lg:col-span-1 border border-gray-300 rounded-lg p-2 pb-12 flex flex-col justify-between">
             <input
               type="text"
               placeholder="Enter ISBN"
               value={isbnInput}
               onChange={(e) => setIsbnInput(e.target.value)}
-              className="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2"
               disabled={loading}
             />
             <button
               onClick={handleGetBookByIsbn}
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md transform hover:scale-105"
+              className="absolute bottom-2 right-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 shadow-md transform hover:scale-105"
               disabled={loading}
             >
-              Get Book by ISBN
+              Get Book
             </button>
           </div>
 
@@ -414,7 +420,7 @@ function App() {
               className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               disabled={loading}
             />
-            {/* Publisher and Publication Year */}
+            {/* Publisher and Publication Year re-added */}
             <input
               type="text"
               placeholder="Publisher (Optional)"
@@ -431,8 +437,7 @@ function App() {
               className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               disabled={loading}
             />
-            {/* Quantity input removed as it's not directly mapped to the backend Book model's `quantity` field.
-                Borrowing/returning is handled via `isBorrowed` status. */}
+            {/* Quantity input remains removed as it's not directly mapped to the backend Book model */}
           </div>
           <div className="flex gap-4">
             <button
@@ -463,6 +468,7 @@ function App() {
                     <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700">ISBN</th>
                     <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700">Title</th>
                     <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700">Author</th>
+                    {/* Qty and Available columns remain removed as they are not directly from backend Book model */}
                     <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700">Status</th>
                     <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700">Borrowed At</th>
                     <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700">Returned At</th>
@@ -492,6 +498,9 @@ function App() {
               <p><strong>ISBN:</strong> {selectedBook.isbn}</p>
               <p><strong>Title:</strong> {selectedBook.title}</p>
               <p><strong>Author:</strong> {selectedBook.author}</p>
+              <p><strong>Publisher:</strong> {selectedBook.publisher || 'N/A'}</p> {/* Re-added for display */}
+              <p><strong>Publication Year:</strong> {selectedBook.publicationYear || 'N/A'}</p> {/* Re-added for display */}
+              {/* Quantity and Available remain removed from display */}
               <p><strong>Status:</strong> {selectedBook.isBorrowed ? 'Borrowed' : 'Available'}</p>
               <p><strong>Borrowed At:</strong> {selectedBook.borrowedAt ? new Date(selectedBook.borrowedAt).toLocaleString() : 'N/A'}</p>
               <p><strong>Returned At:</strong> {selectedBook.returnedAt ? new Date(selectedBook.returnedAt).toLocaleString() : 'N/A'}</p>
@@ -504,8 +513,8 @@ function App() {
             <h2 className="text-xl sm:text-2xl font-semibold text-indigo-600 mb-4">Library Statistics</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
               <p><strong>Total Unique Books:</strong> {stats.total}</p>
-              <p><strong>Total Borrowed Copies:</strong> {stats.borrowed}</p>
-              <p><strong>Total Available Copies:</strong> {stats.available}</p>
+              <p><strong>Total Borrowed Books:</strong> {stats.borrowed}</p>
+              <p><strong>Total Available Books:</strong> {stats.available}</p>
             </div>
           </div>
         )}
