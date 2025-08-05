@@ -7,6 +7,7 @@ import { connectDB } from './src/config/database.js';
 import bookRoutes from './src/routes/bookRoutes.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
 import { logger } from './src/utils/logger.js';
+import authRoutes from './src/routes/authRoutes.js'; // NEW: Import authentication routes
 
 // Load environment variables
 dotenv.config();
@@ -33,13 +34,16 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// --- Routes ---
+// Mount your existing book routes
 app.use('/api/books', bookRoutes);
+// NEW: Mount authentication routes
+app.use('/api/auth', authRoutes); // This mounts the authentication endpoints
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
@@ -50,9 +54,9 @@ app.use(errorHandler);
 
 // Handle 404
 app.use('*', (req, res) => {
-  res.status(404).json({ 
+  res.status(404).json({
     message: 'Route not found',
-    path: req.originalUrl 
+    path: req.originalUrl
   });
 });
 
