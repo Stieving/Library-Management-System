@@ -1,6 +1,19 @@
 import React from 'react';
 
 function BookForm({ bookData, setBookData, loading, onAdd, onUpdate }) {
+  // Determine if the "Add Book" button should be enabled.
+  // It requires ISBN, Title, and Author to be filled.
+  const canAdd = bookData.isbn && bookData.title && bookData.author;
+
+  // Determine if the "Update Book" button should be enabled.
+  // It requires the ISBN and at least one other field to be filled.
+  const canUpdate = bookData.isbn && (
+    bookData.title ||
+    bookData.author ||
+    bookData.publisher ||
+    bookData.publicationYear
+  );
+
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
       <h2 className="text-lg font-semibold text-gray-800 mb-6">Add / Update Book</h2>
@@ -85,14 +98,16 @@ function BookForm({ bookData, setBookData, loading, onAdd, onUpdate }) {
           <button
             onClick={onAdd}
             className="flex-1 max-w-xs bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50"
-            disabled={loading}
+            // The button is disabled if loading is true OR the required fields are not filled.
+            disabled={loading || !canAdd}
           >
             Add Book
           </button>
           <button
             onClick={onUpdate}
             className="flex-1 max-w-xs bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50"
-            disabled={loading}
+            // The button is disabled if loading is true OR the required fields are not filled.
+            disabled={loading || !canUpdate}
           >
             Update Book
           </button>
@@ -102,6 +117,10 @@ function BookForm({ bookData, setBookData, loading, onAdd, onUpdate }) {
       <div className="mt-4 p-3 bg-gray-50 rounded text-sm text-gray-600">
         <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required for adding books. 
         For updates, enter the ISBN and modify any field you want to change.
+      </div>
+
+      <div className="mt-1 p-3 bg-gray-50 rounded text-sm text-gray-600">
+        <strong>Note:</strong> To Add or Update a book. Kindly Login or Signup
       </div>
     </div>
   );
