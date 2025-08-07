@@ -7,6 +7,8 @@ import BookForm from './components/BookForm';
 import Message from './components/Message';
 import Loading from './components/Loading';
 import ActionButtons from './components/ActionButtons';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignUpPage'; 
 
 function AppRoutes({
   books,
@@ -24,10 +26,10 @@ function AppRoutes({
   const statsRef = useRef(null);
   const bookDetailsRef = useRef(null);
   const messageRef = useRef(null);
-  
+
   useEffect(() => {
     if (loading) return;
-    
+
     const timer = setTimeout(() => {
       if (message && messageRef.current) {
         messageRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -80,6 +82,8 @@ function AppRoutes({
           </div>
         </>
       } />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
     </Routes>
   );
 }

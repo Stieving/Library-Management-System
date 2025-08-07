@@ -50,7 +50,7 @@ function ActionButtons({
           <button
             onClick={onGetBookByIsbn}
             className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 rounded-md transition-colors duration-200 disabled:opacity-50"
-            disabled={loading || !isbnInput}
+            disabled={loading}
           >
             Find Book
           </button>
@@ -80,6 +80,11 @@ function ActionButtons({
           </button>
         </div>
       </div>
+
+      <div className="mt-1 p-3 bg-gray-50 rounded text-sm text-gray-600">
+        <strong>Note:</strong> To Borrow, Return or Delete a book. Kindly Login or Signup
+      </div>
+
     </div>
   );
 }
