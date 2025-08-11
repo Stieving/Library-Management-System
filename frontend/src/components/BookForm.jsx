@@ -1,18 +1,20 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext'; // Import the useAuth hook
 
 function BookForm({ bookData, setBookData, loading, onAdd, onUpdate }) {
-  // Determine if the "Add Book" button should be enabled.
-  // It requires ISBN, Title, and Author to be filled.
-  const canAdd = bookData.isbn && bookData.title && bookData.author;
+  const { isLoggedIn } = useAuth(); 
 
-  // Determine if the "Update Book" button should be enabled.
-  // It requires the ISBN and at least one other field to be filled.
-  const canUpdate = bookData.isbn && (
-    bookData.title ||
-    bookData.author ||
-    bookData.publisher ||
-    bookData.publicationYear
-  );
+  // Helper function to check if all required fields for adding a book are filled
+  const hasRequiredAddInput = !!(bookData.isbn && bookData.title && bookData.author);
+  
+  // Helper function to check if the ISBN field is filled for updating a book
+  const hasRequiredUpdateInput = !!bookData.isbn;
+
+  // The Add button is disabled if a request is loading, or if the user is not logged in AND has not provided the required input
+  const isAddButtonDisabled = loading || (!isLoggedIn && !hasRequiredAddInput);
+
+  // The Update button is disabled if a request is loading, or if the user is not logged in AND has not provided the required input
+  const isUpdateButtonDisabled = loading || (!isLoggedIn && !hasRequiredUpdateInput);
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
@@ -30,6 +32,7 @@ function BookForm({ bookData, setBookData, loading, onAdd, onUpdate }) {
               value={bookData.isbn}
               onChange={(e) => setBookData({ ...bookData, isbn: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              // Input fields are only disabled if a request is loading
               disabled={loading}
             />
           </div>
@@ -43,6 +46,7 @@ function BookForm({ bookData, setBookData, loading, onAdd, onUpdate }) {
               value={bookData.title}
               onChange={(e) => setBookData({ ...bookData, title: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              // Input fields are only disabled if a request is loading
               disabled={loading}
             />
           </div>
@@ -59,6 +63,7 @@ function BookForm({ bookData, setBookData, loading, onAdd, onUpdate }) {
               value={bookData.author}
               onChange={(e) => setBookData({ ...bookData, author: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              // Input fields are only disabled if a request is loading
               disabled={loading}
             />
           </div>
@@ -72,6 +77,7 @@ function BookForm({ bookData, setBookData, loading, onAdd, onUpdate }) {
               value={bookData.publisher}
               onChange={(e) => setBookData({ ...bookData, publisher: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              // Input fields are only disabled if a request is loading
               disabled={loading}
             />
           </div>
@@ -88,6 +94,7 @@ function BookForm({ bookData, setBookData, loading, onAdd, onUpdate }) {
               value={bookData.publicationYear}
               onChange={(e) => setBookData({ ...bookData, publicationYear: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              // Input fields are only disabled if a request is loading
               disabled={loading}
             />
           </div>
@@ -98,16 +105,14 @@ function BookForm({ bookData, setBookData, loading, onAdd, onUpdate }) {
           <button
             onClick={onAdd}
             className="flex-1 max-w-xs bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50"
-            // The button is disabled if loading is true OR the required fields are not filled.
-            disabled={loading || !canAdd}
+            disabled={isAddButtonDisabled}
           >
             Add Book
           </button>
           <button
             onClick={onUpdate}
             className="flex-1 max-w-xs bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50"
-            // The button is disabled if loading is true OR the required fields are not filled.
-            disabled={loading || !canUpdate}
+            disabled={isUpdateButtonDisabled}
           >
             Update Book
           </button>

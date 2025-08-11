@@ -1,6 +1,5 @@
 // src/components/Signup.jsx
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Message from './Message';
 import Loading from './Loading';
 
@@ -8,14 +7,10 @@ function Signup({ handlers, loading, message }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await handlers.handleSignup(username, email, password);
-    if (success) {
-      navigate('/login');
-    }
+    await handlers.handleSignup(username, email, password);
   };
 
   return (

@@ -1,15 +1,14 @@
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import the useNavigate hook
-import Signup from '../components/Signup'; // Corrected import path
-import { useAuth } from '../context/AuthContext'; // Corrected import path
+import { useNavigate } from 'react-router-dom';
+import Signup from '../components/SignUp';
+import { useAuth } from '../context/AuthContext';
 
 const SignupPage = () => {
   // Use the useAuth hook to access the registration function
   const { register } = useAuth();
-  // Initialize the navigate function from react-router-dom
   const navigate = useNavigate();
 
-  // State to manage the loading indicator and messages
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -28,15 +27,11 @@ const SignupPage = () => {
       setLoading(false);
       if (success) {
         setMessage({ type: 'success', text: 'Signup successful! Redirecting to login...' });
-        // The success is now tied to a token being set in localStorage
-        // and a user being fetched, as per your App.jsx
         
-        // This is the crucial part: navigate to the login page on success.
         navigate('/login');
         
         return true;
       } else {
-        // The register function likely returns false on failure
         setMessage({ type: 'error', text: 'Signup failed. Please try again.' });
         return false;
       }

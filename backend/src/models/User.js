@@ -1,46 +1,55 @@
 // models/User.js
-import mongoose from 'mongoose'; // Changed from require to import
-import bcrypt from 'bcryptjs'; // Changed from require to import
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: [true, 'Please provide a username'], // Username is required
-    unique: true, // Username must be unique
-    trim: true, // Remove whitespace from both ends of a string
+    required: [true, 'Please provide a username'],
+    unique: true,
+    trim: true,
     minlength: [3, 'Username must be at least 3 characters long'],
     maxlength: [30, 'Username cannot exceed 30 characters'],
   },
   email: {
     type: String,
-    required: [true, 'Please provide an email'], // Email is required
-    unique: true, // Email must be unique
+    required: [true, 'Please provide an email'],
+    unique: true,
     trim: true,
-    lowercase: true, // Store emails in lowercase
-    match: [/.+@.+\..+/, 'Please enter a valid email address'], // Basic email format validation
+    lowercase: true,
+    match: [/.+@.+\..+/, 'Please enter a valid email address'],
   },
   password: {
     type: String,
-    required: [true, 'Please provide a password'], // Password is required
+    required: [true, 'Please provide a password'],
     minlength: [6, 'Password must be at least 6 characters long'],
   },
   createdAt: {
     type: Date,
-    default: Date.now, // Automatically set the creation timestamp
+    default: Date.now,
   },
+  // NEW: Fields for password reset functionality
+  resetPasswordToken: {
+    type: String,
+    // By setting 'select: false', this field will not be returned
+    // in query results by default, improving security.
+    select: false,
+  },
+  resetPasswordExpire: Date,
 });
 
 // --- Mongoose Middleware (Pre-save Hook for Password Hashing) ---
 // This runs BEFORE a user document is saved to the database.
 UserSchema.pre('save', async function(next) {
   // Only hash the password if it has been modified (or is new)
+  // This is crucial to prevent re-hashing the password during other updates
   if (!this.isModified('password')) {
     return next();
   }
 
   try {
     // Generate a salt (random string) for hashing
-    const salt = await bcrypt.genSalt(10); // 10 rounds is a good balance for security and performance
+    const salt = await bcrypt.genSalt(10);
     // Hash the password using the generated salt
     this.password = await bcrypt.hash(this.password, salt);
     next(); // Proceed to save the user
@@ -56,6 +65,6 @@ UserSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const User = mongoose.model('User', UserSchema); // Define the User model
+const User = mongoose.model('User', UserSchema);
 
-export default User; // Changed from module.exports to export default
+export default User;

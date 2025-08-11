@@ -9,6 +9,7 @@ import {
   deleteBook,
   getBookStats
 } from '../controllers/bookController.js';
+import { authenticate } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -18,14 +19,14 @@ router.get('/stats', getBookStats);
 router.get('/:isbn', getBookByIsbn);
 
 // POST routes
-router.post('/', addBook);
-router.post('/:isbn/borrow', borrowBook);
-router.post('/:isbn/return', returnBook);
+router.post('/', authenticate, addBook);
+router.post('/:isbn/borrow', authenticate, borrowBook);
+router.post('/:isbn/return', authenticate, returnBook);
 
 // PUT routes
-router.put('/:isbn', updateBook);
+router.put('/:isbn', authenticate, updateBook);
 
 // DELETE routes
-router.delete('/:isbn', deleteBook);
+router.delete('/:isbn', authenticate, deleteBook);
 
 export default router;

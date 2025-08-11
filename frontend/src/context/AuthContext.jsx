@@ -1,6 +1,8 @@
 // frontend/src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { login as loginService, register as registerService, logout as logoutService, getMe as getMeService } from '../services/authService';
+import { logout as logoutService, getMe as getMeService } from '../services/authService';
+
+const API_BASE_URL = 'http://localhost:3000/api';
 
 const AuthContext = createContext();
 
@@ -46,43 +48,66 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await loginService(email, password);
-      if (response.success) {
-        const newToken = response.data.data.token;
-        localStorage.setItem('token', newToken);
-        setToken(newToken);
-        fetchUser(newToken);
-      } else {
-        throw new Error(response.message || "Login failed.");
-      }
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  };
+const login = async (email, password) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-  const register = async (username, email, password) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await registerService(username, email, password);
-      if (response.success) {
-        const newToken = response.data.data.token;
-        localStorage.setItem('token', newToken);
-        setToken(newToken);
-        fetchUser(newToken);
-      } else {
-        throw new Error(response.message || "Registration failed.");
-      }
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      console.error('Login failed:', data.message);
+      return false;
     }
-  };
+
+    const token = data.data.token;
+    if (!token) {
+      console.error('No token received');
+      return false;
+    }
+
+    localStorage.setItem('token', token);
+    setToken(token);
+    await fetchUser(token);
+    return true;
+  } catch (error) {
+    console.error('Login error:', error);
+    return false;
+  }
+};
+
+
+
+const register = async (username, email, password) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, email, password }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Signup failed');
+    }
+
+    const data = await response.json();
+    console.log("Signup successful:", data);
+    return true;
+  } catch (error) {
+    console.error("Signup error:", error);
+    return false;
+  }
+};
+
+
 
   const logout = () => {
     logoutService(token);
