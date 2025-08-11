@@ -1,9 +1,17 @@
-// controllers/authController.js
-import { registerUser, loginUser, logoutUser, findUserById } from '../services/authService.js'; // Import the authentication service
+// src/controllers/authController.js
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
+import {
+  registerUser,
+  loginUser,
+  logoutUser,
+  findUserById,
+  forgotPassword as forgotPasswordService,
+  resetPassword as resetPasswordService,
+} from '../services/authService.js';
+
+// @desc    Register a new user
+// @route   POST /api/auth/register
+// @access  Public
 export async function register(req, res) {
   try {
     // Call the registerUser service method with request body data
@@ -23,9 +31,9 @@ export async function register(req, res) {
   }
 }
 
-// @desc    Authenticate user & get token
-// @route   POST /api/auth/login
-// @access  Public
+// @desc    Authenticate user & get token
+// @route   POST /api/auth/login
+// @access  Public
 export async function login(req, res) {
   try {
     // Call the loginUser service method with request body credentials
@@ -45,9 +53,9 @@ export async function login(req, res) {
   }
 }
 
-// @desc    Log out user (invalidate token conceptually)
-// @route   POST /api/auth/logout
-// @access  Private (client-side action, but endpoint can be protected)
+// @desc    Log out user (invalidate token conceptually)
+// @route   POST /api/auth/logout
+// @access  Private (client-side action, but endpoint can be protected)
 export function logout(req, res) {
   // Extract token from headers (if present)
   const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
@@ -60,9 +68,9 @@ export function logout(req, res) {
   });
 }
 
-// @desc    Get current authenticated user's profile
-// @route   GET /api/auth/me
-// @access  Private (requires authentication)
+// @desc    Get current authenticated user's profile
+// @route   GET /api/auth/me
+// @access  Private (requires authentication)
 export async function getMe(req, res) {
   try {
     // The 'authenticate' middleware attaches the user object to req.user
@@ -85,6 +93,44 @@ export async function getMe(req, res) {
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to retrieve user data',
+    });
+  }
+}
+
+// @desc    Request a password reset link
+// @route   POST /api/auth/forgot-password
+// @access  Public
+export async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    await forgotPasswordService(email);
+    res.status(200).json({
+      success: true,
+      message: 'If a user with this email exists, a password reset link has been sent.',
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to initiate password reset.',
+    });
+  }
+}
+
+// @desc    Reset password with a valid token
+// @route   POST /api/auth/reset-password
+// @access  Public
+export async function resetPassword(req, res) {
+  try {
+    const { token, newPassword } = req.body;
+    await resetPasswordService(token, newPassword);
+    res.status(200).json({
+      success: true,
+      message: 'Password has been reset successfully.',
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to reset password.',
     });
   }
 }

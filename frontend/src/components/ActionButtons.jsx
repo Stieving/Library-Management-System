@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext'; // Import the useAuth hook
 
 function ActionButtons({
   loading,
@@ -11,6 +12,14 @@ function ActionButtons({
   onReturnBook,
   onDeleteBook
 }) {
+  const { isLoggedIn } = useAuth(); 
+
+  // All non-authenticated action buttons are disabled only during a loading state
+  const isPublicButtonDisabled = loading;
+
+  // Authenticated action buttons are disabled if a request is loading, or if the user is not logged in AND has not provided an ISBN
+  const isActionButtonDisabled = loading || (!isLoggedIn && !isbnInput);
+
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
       <h2 className="text-lg font-semibold text-gray-800 mb-6">Quick Actions</h2>
@@ -19,7 +28,7 @@ function ActionButtons({
         <button
           onClick={onGetAllBooks}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 shadow-sm disabled:opacity-50"
-          disabled={loading}
+          disabled={isPublicButtonDisabled}
         >
           Get All Books
         </button>
@@ -27,7 +36,7 @@ function ActionButtons({
         <button
           onClick={onGetBookStats}
           className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 shadow-sm disabled:opacity-50"
-          disabled={loading}
+          disabled={isPublicButtonDisabled}
         >
           Get Statistics
         </button>
@@ -45,12 +54,14 @@ function ActionButtons({
             value={isbnInput}
             onChange={(e) => setIsbnInput(e.target.value)}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            disabled={loading}
+            // The input field is only disabled during a loading state
+            disabled={isPublicButtonDisabled}
           />
           <button
             onClick={onGetBookByIsbn}
             className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 rounded-md transition-colors duration-200 disabled:opacity-50"
-            disabled={loading}
+            // This button is only disabled if a request is loading
+            disabled={isPublicButtonDisabled}
           >
             Find Book
           </button>
@@ -60,21 +71,21 @@ function ActionButtons({
           <button
             onClick={onBorrowBook}
             className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
-            disabled={loading || !isbnInput}
+            disabled={isActionButtonDisabled}
           >
             Borrow
           </button>
           <button
             onClick={onReturnBook}
             className="bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
-            disabled={loading || !isbnInput}
+            disabled={isActionButtonDisabled}
           >
             Return
           </button>
           <button
             onClick={onDeleteBook}
             className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
-            disabled={loading || !isbnInput}
+            disabled={isActionButtonDisabled}
           >
             Delete
           </button>
@@ -82,9 +93,8 @@ function ActionButtons({
       </div>
 
       <div className="mt-1 p-3 bg-gray-50 rounded text-sm text-gray-600">
-        <strong>Note:</strong> To Borrow, Return or Delete a book. Kindly Login or Signup
+        <strong>Note:</strong> To Borrow, Return or Delete a book, kindly Login or Signup.
       </div>
-
     </div>
   );
 }

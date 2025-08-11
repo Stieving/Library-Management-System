@@ -7,6 +7,9 @@ const logger = {
     },
     error: (message, ...args) => {
       console.error(`[ERROR] ${new Date().toISOString()}: ${message}`, ...args);
+    },
+    debug: (message, ...args) => {
+      console.error(`[DEBUG] ${new Date().toISOString()}: ${message}`, ...args);
     }
   };
   

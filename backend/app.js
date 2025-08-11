@@ -9,6 +9,11 @@ import { errorHandler } from './src/middleware/errorHandler.js';
 import { logger } from './src/utils/logger.js';
 import authRoutes from './src/routes/authRoutes.js'; // NEW: Import authentication routes
 
+// NEW IMPORTS: Add these to support password reset
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import User from './src/models/User.js'; // Make sure this path is correct
+
 // Load environment variables
 dotenv.config();
 
@@ -49,6 +54,27 @@ app.get('/health', (req, res) => {
   });
 });
 
+// NEW: Add a simple test user to the database if one doesn't exist.
+// This is for demonstration purposes to make it easier to test the password reset flow.
+// async function createTestUser() {
+//     // Only run this if the database connection is ready
+//     if (mongoose.connection.readyState !== 1) {
+//         logger.error('Database not connected. Cannot create test user.');
+//         return;
+//     }
+//     const existingUser = await User.findOne({ email: 'testuser@example.com' });
+//     if (!existingUser) {
+//         const passwordHash = await bcrypt.hash('password123', 10);
+//         const testUser = new User({
+//             email: 'testuser@example.com',
+//             passwordHash: passwordHash
+//         });
+//         await testUser.save();
+//         logger.info('Test user created: testuser@example.com / password123');
+//     }
+// }
+// createTestUser();
+
 // Error handling middleware (should be last)
 app.use(errorHandler);
 
@@ -62,16 +88,16 @@ app.use('*', (req, res) => {
 
 // Start server
 app.listen(port, () => {
-  logger.info(`LMS API listening at http://localhost:${port}`);
+ logger.info(`LMS API listening at http://localhost:${port}`);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully');
-  process.exit(0);
+ logger.info('SIGTERM received, shutting down gracefully');
+ process.exit(0);
 });
 
 process.on('SIGINT', () => {
-  logger.info('SIGINT received, shutting down gracefully');
-  process.exit(0);
+ logger.info('SIGINT received, shutting down gracefully');
+ process.exit(0);
 });

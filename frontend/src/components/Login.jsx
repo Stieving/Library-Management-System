@@ -1,24 +1,20 @@
-// src/components/Login.jsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Message from './Message';
 import Loading from './Loading';
 
 function Login({ handlers, loading, message }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await handlers.handleLogin(email, password);
-    if (success) {
-      navigate('/');
-    }
+    await handlers.handleLogin(email, password);
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
         <h2 className="text-3xl font-bold text-center text-indigo-700 mb-6">Login</h2>
         {message && <Message message={message} />}
@@ -52,6 +48,12 @@ function Login({ handlers, loading, message }) {
             Log In
           </button>
         </form>
+        {/* Forgot Password link */}
+        <div className="mt-4 text-center">
+          <Link to="/forgot-password" className="text-sm text-indigo-600 hover:underline">
+            Forgot Password?
+          </Link>
+        </div>
       </div>
     </div>
   );
