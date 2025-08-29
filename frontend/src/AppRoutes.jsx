@@ -11,6 +11,8 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignUpPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage'; 
+import EmailVerificationPage from './pages/EmailVerificationPage';
+import VerificationMessagePage from './pages/VerificationMessagePage';
 
 function AppRoutes({
   books,
@@ -88,6 +90,8 @@ function AppRoutes({
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+      <Route path="/verify-email/:token" element={<EmailVerificationPage />} />
+      <Route path="/verification-message" element={<VerificationMessagePage />} />
     </Routes>
   );
 }

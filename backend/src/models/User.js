@@ -28,40 +28,39 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  // NEW: Fields for password reset functionality
+  // Email verification
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+  type: String,
+  select: false,
+  },
+  verificationTokenExpire: Date,
+  // Password reset functionality
   resetPasswordToken: {
     type: String,
-    // By setting 'select: false', this field will not be returned
-    // in query results by default, improving security.
     select: false,
   },
   resetPasswordExpire: Date,
 });
 
 // --- Mongoose Middleware (Pre-save Hook for Password Hashing) ---
-// This runs BEFORE a user document is saved to the database.
-UserSchema.pre('save', async function(next) {
-  // Only hash the password if it has been modified (or is new)
-  // This is crucial to prevent re-hashing the password during other updates
-  if (!this.isModified('password')) {
-    return next();
-  }
+UserSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
 
   try {
-    // Generate a salt (random string) for hashing
     const salt = await bcrypt.genSalt(10);
-    // Hash the password using the generated salt
     this.password = await bcrypt.hash(this.password, salt);
-    next(); // Proceed to save the user
+    next();
   } catch (error) {
-    next(error); // Pass any error to the next middleware
+    next(error);
   }
 });
 
 // --- Instance Method for Password Comparison ---
-// This method will be available on user documents to compare provided password with the hashed one
-UserSchema.methods.matchPassword = async function(enteredPassword) {
-  // Compare the entered password with the hashed password stored in the database
+UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

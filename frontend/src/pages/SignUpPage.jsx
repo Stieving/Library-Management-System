@@ -1,58 +1,64 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Signup from '../components/SignUp';
 import { useAuth } from '../context/AuthContext';
+import StaticPageWrapper from '../components/StaticPageWrapper';
+import { useNavigate } from 'react-router-dom';
 
 const SignupPage = () => {
-  // Use the useAuth hook to access the registration function
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(null); 
 
   /**
    * Handles the signup process. It calls the register function from the AuthContext.
    * @param {string} username - The username from the form.
    * @param {string} email - The email from the form.
    * @param {string} password - The password from the form.
-   * @returns {Promise<boolean>} A promise that resolves to true on success, false on failure.
    */
   const handleSignup = async (username, email, password) => {
     setLoading(true);
-    setMessage('');
+    setMessage(null);
     try {
       const success = await register(username, email, password);
       setLoading(false);
+
       if (success) {
-        setMessage({ type: 'success', text: 'Signup successful! Redirecting to login...' });
-        
-        navigate('/login');
-        
-        return true;
+        navigate('/verification-message', { state: { email } });
+        return { success: true };
       } else {
-        setMessage({ type: 'error', text: 'Signup failed. Please try again.' });
-        return false;
+        setMessage({
+          type: 'error',
+          text: 'Signup failed. Please try again.',
+        });
+        return { success: false };
       }
     } catch (error) {
       setLoading(false);
-      setMessage({ type: 'error', text: error.message || 'An unexpected error occurred.' });
+      setMessage({
+        type: 'error',
+        text: error.message || 'An unexpected error occurred.',
+      });
       console.error('Signup error:', error);
-      return false;
+      return { success: false };
     }
   };
 
   const handlers = {
     handleSignup,
+    setMessage,
   };
 
   return (
-    <Signup
-      handlers={handlers}
-      loading={loading}
-      message={message}
-    />
+    <StaticPageWrapper>
+      <Signup
+        handlers={handlers}
+        loading={loading}
+        message={message}
+      />
+    </StaticPageWrapper>
   );
 };
 

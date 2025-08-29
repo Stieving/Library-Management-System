@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Message from '../components/Message';
 import Loading from '../components/Loading';
+import StaticPageWrapper from '../components/StaticPageWrapper';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 function ResetPasswordPage() {
   const { token } = useParams(); // Get the token from the URL parameters
@@ -11,6 +14,7 @@ function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,43 +50,72 @@ function ResetPasswordPage() {
     }
   };
 
+  // Function to toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(prev => !prev);
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center text-indigo-700 mb-6">Reset Password</h2>
-        {message && <Message message={message} />}
-        <Loading loading={loading} />
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">New Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Confirm New Password</label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 transition-colors disabled:bg-indigo-300"
-            disabled={loading}
-          >
-            Reset Password
-          </button>
-        </form>
+    <StaticPageWrapper>
+      <div className="flex items-center justify-center bg-gray-50 p-4">
+        <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+          <h2 className="text-3xl font-bold text-center text-indigo-700 mb-6">Reset Password</h2>
+          {message && <Message message={message} />}
+          <Loading loading={loading} />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-gray-700 font-medium mb-1">New Password</label>
+              {/* Wrap the input and icon in a relative container */}
+              <div className="relative">
+                <input
+                  // Dynamically set the input type based on the showPassword state
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
+                  required
+                />
+                {/* The eye icon with an onClick handler */}
+                <FontAwesomeIcon
+                  // Change the icon based on the showPassword state
+                  icon={showPassword ? faEye : faEyeSlash}
+                  className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-gray-500"
+                  onClick={togglePasswordVisibility}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-gray-700 font-medium mb-1">Confirm New Password</label>
+              {/* Wrap the input and icon in a relative container */}
+              <div className="relative">
+                <input
+                  // Dynamically set the input type based on the showPassword state
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
+                  required
+                />
+                {/* The eye icon with an onClick handler */}
+                <FontAwesomeIcon
+                  // Change the icon based on the showPassword state
+                  icon={showPassword ? faEye : faEyeSlash}
+                  className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-gray-500"
+                  onClick={togglePasswordVisibility}
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 transition-colors disabled:bg-indigo-300"
+              disabled={loading}
+            >
+              Reset Password
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+    </StaticPageWrapper>
   );
 }
 

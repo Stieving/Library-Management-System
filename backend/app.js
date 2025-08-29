@@ -7,7 +7,10 @@ import { connectDB } from './src/config/database.js';
 import bookRoutes from './src/routes/bookRoutes.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
 import { logger } from './src/utils/logger.js';
-import authRoutes from './src/routes/authRoutes.js'; // NEW: Import authentication routes
+import authRoutes from './src/routes/authRoutes.js';
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import User from './src/models/User.js';
 
 // NEW IMPORTS: Add these to support password reset
 import mongoose from 'mongoose';

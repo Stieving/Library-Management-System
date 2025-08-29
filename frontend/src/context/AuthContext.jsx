@@ -1,15 +1,14 @@
-// frontend/src/context/AuthContext.jsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { logout as logoutService, getMe as getMeService } from '../services/authService';
-
-const API_BASE_URL = 'http://localhost:3000/api';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import {
+  loginService,
+  registerService,
+  logoutService,
+  getMeService,
+} from "../services/authService";
 
 const AuthContext = createContext();
 
-// This is the hook that AppContent needs to use
-const useAuth = () => {
-  return useContext(AuthContext);
-};
+const useAuth = () => useContext(AuthContext);
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -19,7 +18,7 @@ const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
+    const storedToken = localStorage.getItem("token");
     if (storedToken) {
       setToken(storedToken);
       fetchUser(storedToken);
@@ -40,7 +39,7 @@ const AuthProvider = ({ children }) => {
         throw new Error(response.message || "Failed to fetch user data.");
       }
     } catch (err) {
-      console.error('AuthContext fetchUser error:', err);
+      console.error("AuthContext fetchUser error:", err);
       logout();
       setError(err.message);
     } finally {
@@ -48,20 +47,41 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-const login = async (email, password) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+  const login = async (email, password) => {
+    try {
+      const data = await loginService(email, password);
+      if (!data.success) {
+        console.error("Login failed:", data.message);
+        return false;
+      }
 
-    const data = await response.json();
+      const token = data.data.token;
+      if (!token) {
+        console.error("No token received");
+        return false;
+      }
 
-    if (!response.ok || !data.success) {
-      console.error('Login failed:', data.message);
+      localStorage.setItem("token", token);
+      setToken(token);
+      await fetchUser(token);
+      return true;
+    } catch (error) {
+      console.error("Login error:", error);
+      return false;
+    }
+  };
+
+  const register = async (username, email, password) => {
+    try {
+      const data = await registerService(username, email, password);
+      if (!data.success) {
+        console.error("Signup failed:", data.message);
+        return false;
+      }
+      console.log("Signup successful:", data);
+      return true;
+    } catch (error) {
+      console.error("Signup error:", error);
       return false;
     }
 
@@ -111,7 +131,7 @@ const register = async (username, email, password) => {
 
   const logout = () => {
     logoutService(token);
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setToken(null);
     setUser(null);
     setIsLoggedIn(false);
@@ -130,7 +150,8 @@ const register = async (username, email, password) => {
     logout,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+  return (
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  );
 
 export { AuthContext, AuthProvider, useAuth };

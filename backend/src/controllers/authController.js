@@ -7,26 +7,28 @@ import {
   findUserById,
   forgotPassword as forgotPasswordService,
   resetPassword as resetPasswordService,
-} from '../services/authService.js';
+  verifyEmailService,
+  resendVerificationEmailService
+} from "../services/authService.js";
+import { AppError } from "../utils/appError.js";
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
 export async function register(req, res) {
   try {
-    // Call the registerUser service method with request body data
-    const user = await registerUser(req.body);
-    // Send a success response with user data and token
+    // Register user, generate verification token & send verification email
+    await registerUser(req.body);
+
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
-      data: user,
+      message:
+        "Registration successful. A verification link has been sent to your email.",
     });
   } catch (error) {
-    // Handle errors (e.g., duplicate email/username, validation errors)
     res.status(400).json({
       success: false,
-      message: error.message || 'Registration failed',
+      message: error.message || "Registration failed.",
     });
   }
 }
@@ -41,14 +43,14 @@ export async function login(req, res) {
     // Send a success response with user data and token
     res.status(200).json({
       success: true,
-      message: 'Logged in successfully',
+      message: "Logged in successfully",
       data: user,
     });
   } catch (error) {
     // Handle errors (e.g., invalid credentials)
     res.status(401).json({
       success: false,
-      message: error.message || 'Authentication failed',
+      message: error.message || "Authentication failed",
     });
   }
 }
@@ -58,7 +60,8 @@ export async function login(req, res) {
 // @access  Private (client-side action, but endpoint can be protected)
 export function logout(req, res) {
   // Extract token from headers (if present)
-  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+  const token =
+    req.headers.authorization && req.headers.authorization.split(" ")[1];
   // Call the logoutUser service method
   const result = logoutUser(token);
   // Send a success response
@@ -73,15 +76,15 @@ export function logout(req, res) {
 // @access  Private (requires authentication)
 export async function getMe(req, res) {
   try {
-    // The 'authenticate' middleware attaches the user object to req.user
-    // We only send back public user information, not the hashed password
-    const user = await findUserById(req.user.id); // Assuming authService has a findUserById
+    const user = await findUserById(req.user.id);
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
     res.status(200).json({
       success: true,
-      message: 'User data retrieved',
+      message: "User data retrieved",
       data: {
         _id: user._id,
         username: user.username,
@@ -92,7 +95,7 @@ export async function getMe(req, res) {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to retrieve user data',
+      message: error.message || "Failed to retrieve user data",
     });
   }
 }
@@ -106,12 +109,13 @@ export async function forgotPassword(req, res) {
     await forgotPasswordService(email);
     res.status(200).json({
       success: true,
-      message: 'If a user with this email exists, a password reset link has been sent.',
+      message:
+        "If a user with this email exists, a password reset link has been sent.",
     });
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message || 'Failed to initiate password reset.',
+      message: error.message || "Failed to initiate password reset.",
     });
   }
 }
@@ -121,16 +125,56 @@ export async function forgotPassword(req, res) {
 // @access  Public
 export async function resetPassword(req, res) {
   try {
-    const { token, newPassword } = req.body;
+    const { newPassword } = req.body;
+    const { token } = req.params;
     await resetPasswordService(token, newPassword);
-    res.status(200).json({
-      success: true,
-      message: 'Password has been reset successfully.',
-    });
+    res
+      .status(200)
+      .json({ success: true, message: "Password reset successful." });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message || 'Failed to reset password.',
-    });
+    res
+      .status(400)
+      .json({
+        success: false,
+        message: error.message || "Failed to reset password.",
+      });
   }
 }
+
+// @desc    Verify user's email with a valid token
+// @route   GET /api/auth/verify-email
+// @access  Public
+export async function verifyEmail(req, res) {
+  try {
+    const { token } = req.query;
+
+    await verifyEmailService(token);
+
+    // ✅ Redirect directly to login with success
+    return res.redirect(
+      "http://localhost:5173/login?verified=true"
+    );
+  } catch (error) {
+    return res.redirect(
+      "http://localhost:5173/login?verified=false&message=" +
+        encodeURIComponent(error.message || "Verification failed.")
+    );
+  }
+}
+
+export const resendVerificationEmail = async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    const result = await resendVerificationEmailService(email);
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    res.json(result);
+  } catch (err) {
+    console.error("Resend verification error:", err);
+    next(new AppError(500, "Failed to resend verification email."));
+  }
+};

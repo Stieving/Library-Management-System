@@ -1,8 +1,8 @@
 // middleware/authMiddleware.js
-import jwt from 'jsonwebtoken'; // For token verification
-import { verifyToken } from '../services/authService.js'; // Correct: Added .js extension
+import jwt from 'jsonwebtoken'; 
+import { verifyToken } from '../services/authService.js';
 
-// Removed: require('dotenv').config(); - Assumed to be loaded in app.js
+
 
 // Middleware to authenticate requests
 export async function authenticate(req, res, next) {
@@ -29,8 +29,7 @@ export async function authenticate(req, res, next) {
         message: error.message || 'Not authorized, token failed',
       });
     }
-  } else { // Added else block to ensure response is sent if no token is provided
-    // If no token is provided in the header
+  } else { 
     res.status(401).json({
       success: false,
       message: 'Not authorized, no token',

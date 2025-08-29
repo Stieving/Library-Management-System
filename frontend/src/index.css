@@ -77,3 +77,11 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.static-page-active {
+  overflow: hidden;
+}
+
+html, body, #root {
+  height: 100%;
+}
