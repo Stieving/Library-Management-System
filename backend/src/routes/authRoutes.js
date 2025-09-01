@@ -10,7 +10,7 @@ router.post('/login', login); // Route for user login
 
 // Routes for password reset functionality
 router.post('/forgot-password', forgotPassword); // Route for forgot password
-router.post('/reset-password', resetPassword); // Route for reset password
+router.post('/reset-password/:token', resetPassword);
 
 // Protected routes (require authentication middleware)
 router.post('/logout', authenticate, logout); // Logout (requires token to be sent, though stateless)

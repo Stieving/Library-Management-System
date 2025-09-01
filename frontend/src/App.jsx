@@ -13,7 +13,7 @@ import {
   returnBook,
   getBookStats
 } from './services/api';
-import { login as loginService, register as registerService, logout as logoutService, getMe as getMeService } from './services/authService';
+import { loginService, registerService, logoutService, getMeService } from './services/authService';
 
 function App() {
   const [books, setBooks] = useState([]);
