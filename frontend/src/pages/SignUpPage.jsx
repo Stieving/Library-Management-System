@@ -18,33 +18,34 @@ const SignupPage = () => {
    * @param {string} email - The email from the form.
    * @param {string} password - The password from the form.
    */
-  const handleSignup = async (username, email, password) => {
-    setLoading(true);
-    setMessage(null);
-    try {
-      const success = await register(username, email, password);
-      setLoading(false);
+const handleSignup = async (username, email, password) => {
+  setLoading(true);
+  setMessage(null);
 
-      if (success) {
-        navigate('/verification-message', { state: { email } });
-        return { success: true };
-      } else {
-        setMessage({
-          type: 'error',
-          text: 'Signup failed. Please try again.',
-        });
-        return { success: false };
-      }
-    } catch (error) {
-      setLoading(false);
-      setMessage({
-        type: 'error',
-        text: error.message || 'An unexpected error occurred.',
-      });
-      console.error('Signup error:', error);
+  try {
+    const result = await register(username, email, password);
+    setLoading(false);
+
+    if (result.success) {
+      // show success message and navigate
+      setMessage({ type: "success", text: result.message });
+      navigate("/verification-message", { state: { email } });
+      return { success: true };
+    } else {
+      setMessage({ type: "error", text: result.message });
       return { success: false };
     }
-  };
+  } catch (error) {
+    setLoading(false);
+    setMessage({
+      type: "error",
+      text: error.message || "An unexpected error occurred.",
+    });
+    console.error("Signup error:", error);
+    return { success: false };
+  }
+};
+
 
   const handlers = {
     handleSignup,

@@ -71,62 +71,23 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (username, email, password) => {
-    try {
-      const data = await registerService(username, email, password);
-      if (!data.success) {
-        console.error("Signup failed:", data.message);
-        return false;
-      }
-      console.log("Signup successful:", data);
-      return true;
-    } catch (error) {
-      console.error("Signup error:", error);
-      return false;
-    }
-
-    const token = data.data.token;
-    if (!token) {
-      console.error('No token received');
-      return false;
-    }
-
-    localStorage.setItem('token', token);
-    setToken(token);
-    await fetchUser(token);
-    return true;
-  } catch (error) {
-    console.error('Login error:', error);
-    return false;
-  }
-};
-
-
-
 const register = async (username, email, password) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, email, password }),
-    });
+    const data = await registerService(username, email, password);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Signup failed');
+    if (!data.success) {
+      console.error("Signup failed:", data.message);
+      return { success: false, message: data.message || "Signup failed" };
     }
 
-    const data = await response.json();
+    // ✅ Registration is successful, but no token is returned
     console.log("Signup successful:", data);
-    return true;
+    return { success: true, message: data.message };
   } catch (error) {
     console.error("Signup error:", error);
-    return false;
+    return { success: false, message: error.message || "An error occurred" };
   }
 };
-
 
 
   const logout = () => {
@@ -153,5 +114,6 @@ const register = async (username, email, password) => {
   return (
     <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
   );
+  };
 
 export { AuthContext, AuthProvider, useAuth };

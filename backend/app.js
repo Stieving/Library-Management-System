@@ -12,11 +12,6 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import User from './src/models/User.js';
 
-// NEW IMPORTS: Add these to support password reset
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
-import User from './src/models/User.js'; // Make sure this path is correct
-
 // Load environment variables
 dotenv.config();
 
@@ -28,7 +23,12 @@ connectDB();
 
 // Security middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({ 
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Rate limiting
 const limiter = rateLimit({

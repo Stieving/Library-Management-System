@@ -24,29 +24,24 @@ function LoginPage() {
     }
   }, [location]);
 
-  const handleLogin = async (email, password) => {
-    setLoading(true);
-    setMessage(null);
-    try {
-      const success = await login(email, password);
-      if (success) {
-        navigate('/');
-      } else {
-        setMessage({ type: "error", text: "Invalid login. Please try again or register." });
-      }
-    } catch (error) {
-      console.error("Login failed:", error);
-      setMessage({ type: "error", text: "Failed to log in. Please check your credentials." });
-    } finally {
-      setLoading(false);
+const handleLogin = async (email, password) => {
+  setLoading(true);
+  setMessage(null);
+  try {
+    const success = await login(email, password);
+    if (success) {
+      navigate('/');
+    } else {
+      setMessage({ type: "error", text: "Invalid login. Please try again or register." });
     }
   } catch (error) {
     console.error("Login failed:", error);
-    setMessage("Failed to log in. Please check your credentials.");
+    setMessage({ type: "error", text: "Failed to log in. Please check your credentials." });
   } finally {
     setLoading(false);
   }
 };
+
 
 
   return (
@@ -58,6 +53,7 @@ function LoginPage() {
       />
     </StaticPageWrapper>
   );
+}
 
 
 export default LoginPage;
