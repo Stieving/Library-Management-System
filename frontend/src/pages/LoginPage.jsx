@@ -7,7 +7,7 @@ import StaticPageWrapper from '../components/StaticPageWrapper';
 
 function LoginPage() {
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null); 
+  const [message, setMessage] = useState(null);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,14 +40,7 @@ function LoginPage() {
     } finally {
       setLoading(false);
     }
-  } catch (error) {
-    console.error("Login failed:", error);
-    setMessage("Failed to log in. Please check your credentials.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <StaticPageWrapper>
@@ -58,6 +51,6 @@ function LoginPage() {
       />
     </StaticPageWrapper>
   );
-
+}
 
 export default LoginPage;

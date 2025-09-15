@@ -14,6 +14,9 @@ import {
   getBookStats
 } from './services/api';
 import { loginService, registerService, logoutService, getMeService } from './services/authService';
+import { ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const [books, setBooks] = useState([]);
@@ -148,16 +151,24 @@ function App() {
       const data = await getAllBooks(token);
       if (data.success) {
         setBooks(data.data);
-        showMessage('All books retrieved successfully!');
+    //     showMessage('All books retrieved successfully!');
+    //   } else {
+    //     showMessage(`Failed to retrieve books: ${data.message || 'Unknown error'}`);
+    //   }
+    // } catch {
+    //   showMessage('Network error: Could not connect to backend.');
+    // } finally {
+        toast.success("All books retrieved successfully!");
       } else {
-        showMessage(`Failed to retrieve books: ${data.message || 'Unknown error'}`);
+        toast.error(`Failed to retrieve books: ${data.message || 'Unknown error'}`);
       }
     } catch {
-      showMessage('Network error: Could not connect to backend.');
+      toast.error("Network error: Could not connect to backend.");
     } finally {
       setLoading(false);
     }
   };
+      
   const handleGetBookByIsbn = async () => {
     setLoading(true);
     setMessage('');
@@ -186,30 +197,43 @@ function App() {
       setIsbnInput('');
     }
   };
-  const handleAddBook = async () => {
-    setLoading(true);
-    setMessage('');
-    if (!bookData.isbn || !bookData.title || !bookData.author) {
-      showMessage('Please fill in ISBN, Title, and Author.');
-      setLoading(false);
-      return;
+const handleAddBook = async () => { 
+  setLoading(true);
+  setMessage('');
+
+  if (!bookData.isbn || !bookData.title || !bookData.author) {
+    showMessage('Please fill in ISBN, Title, and Author.');
+    toast.error("Please fill in ISBN, Title, and Author.");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const payload = {
+      isbn: bookData.isbn,
+      title: bookData.title,
+      author: bookData.author
+    };
+
+    // Pass the token to the API call
+    const data = await addBook(payload, token);
+
+    if (data.success) {
+      showMessage('Book added successfully!');
+      toast.success("Book added successfully!");
+      setBookData({ isbn: '', title: '', author: '', publisher: '', publicationYear: '' });
+    } else {
+    if (data.message && data.message.toLowerCase().includes("isbn already exists")) {
+      toast.error("Cannot add book: ISBN already exists");
+    } else {
+      toast.error(`Failed to add book: ${data.message || 'Unknown error'}`);
     }
-    try {
-      const payload = {
-        isbn: bookData.isbn,
-        title: bookData.title,
-        author: bookData.author
-      };
-      // Pass the token to the API call
-      const data = await addBook(payload, token);
-      if (data.success) {
-        showMessage('Book added successfully!');
-        setBookData({ isbn: '', title: '', author: '', publisher: '', publicationYear: '' });
-      } else {
-        showMessage(`Failed to add book: ${data.message || 'Unknown error'}`);
-      }
+
+      showMessage(`Failed to add book: ${data.message || 'Unknown error'}`);
+    }
     } catch {
       showMessage('Network error: Could not connect to backend.');
+      toast.error("Network error: Could not connect to backend.");
     } finally {
       setLoading(false);
     }
@@ -275,12 +299,19 @@ function App() {
       // Pass the token to the API call
       const data = await borrowBook(isbnInput, token);
       if (data.success) {
-        showMessage('Book borrowed successfully!');
+    //     showMessage('Book borrowed successfully!');
+    //   } else {
+    //     showMessage(`Failed to borrow book: ${data.message || 'Unknown error'}`);
+    //   }
+    // } catch {
+    //   showMessage('Network error: Could not connect to backend.');
+    // } finally {
+            toast.success("Book borrowed successfully!");
       } else {
-        showMessage(`Failed to borrow book: ${data.message || 'Unknown error'}`);
+        toast.error(`Failed to borrow book: ${data.message || 'Unknown error'}`);
       }
     } catch {
-      showMessage('Network error: Could not connect to backend.');
+      toast.error("Network error: Could not connect to backend.");
     } finally {
       setLoading(false);
       setIsbnInput('');
@@ -290,28 +321,44 @@ function App() {
     setLoading(true);
     setMessage('');
     if (!isbnInput) {
-      showMessage('Please enter an ISBN to return.');
+    //   showMessage('Please enter an ISBN to return.');
+    //   setLoading(false);
+    //   return;
+    // }
+    // try {
+    //   // Pass the token to the API call
+    //   const data = await returnBook(isbnInput, token);
+    //   if (data.success) {
+    // //     
+    //   toast.success("Book returned successfully!");
+    //   } else {
+    //     toast.error(`Failed to return book: ${data.message || 'Unknown error'}`);
+    //   }
+    // } catch {
+    // toast.error("Network error: Could not connect to backend.");
+    // } finally {
+          toast.error("Please enter an ISBN to return.");
       setLoading(false);
       return;
     }
+
     try {
-      // Pass the token to the API call
       const data = await returnBook(isbnInput, token);
       if (data.success) {
-        showMessage('Book returned successfully!');
+        toast.success("Book returned successfully!");
       } else {
-        showMessage(`Failed to return book: ${data.message || 'Unknown error'}`);
+        toast.error(`Failed to return book: ${data.message || 'Unknown error'}`);
       }
     } catch {
-      showMessage('Network error: Could not connect to backend.');
+      toast.error("Network error: Could not connect to backend.");
     } finally {
       setLoading(false);
       setIsbnInput('');
-    }
-  };
+      }
+    };
   const handleGetBookStats = async () => {
     setLoading(true);
-    setMessage('');
+    //setMessage('');
     setBooks([]);
     setSelectedBook(null);
     try {
@@ -319,16 +366,23 @@ function App() {
       const data = await getBookStats(token);
       if (data.success) {
         setStats(data.data);
-        showMessage('Book statistics retrieved successfully!');
+    //     showMessage('Book statistics retrieved successfully!');
+    //   } else {
+    //     showMessage(`Failed to retrieve book statistics: ${data.message || 'Unknown error'}`);
+    //   }
+    // } catch {
+    //   showMessage('Network error: Could not connect to backend.');
+    // } finally {
+      toast.success("Book statistics retrieved successfully!");
       } else {
-        showMessage(`Failed to retrieve book statistics: ${data.message || 'Unknown error'}`);
+        toast.error(`Failed to retrieve book statistics: ${data.message || 'Unknown error'}`);
       }
     } catch {
-      showMessage('Network error: Could not connect to backend.');
+      toast.error("Network error: Could not connect to backend.");
     } finally {
-      setLoading(false);
-    }
-  };
+        setLoading(false);
+      }
+    };
 
   const handlers = {
     handleGetAllBooks,
@@ -357,6 +411,7 @@ function App() {
           setIsbnInput={setIsbnInput}
           handlers={handlers}
         />
+        <ToastContainer position="top-right" autoClose={3000} />
       </AuthProvider>
     </BrowserRouter>
   );
