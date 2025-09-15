@@ -12,11 +12,6 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import User from './src/models/User.js';
 
-// NEW IMPORTS: Add these to support password reset
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
-import User from './src/models/User.js'; // Make sure this path is correct
-
 // Load environment variables
 dotenv.config();
 
