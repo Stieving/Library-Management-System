@@ -1,14 +1,14 @@
 // src/pages/LoginPage.jsx
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Login from '../components/Login';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import StaticPageWrapper from '../components/StaticPageWrapper';
 
 function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
-  const { login } = useContext(AuthContext);
+  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 

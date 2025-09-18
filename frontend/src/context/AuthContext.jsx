@@ -6,14 +6,19 @@ import {
   logoutService,
   getMeService,
 } from '../services/authService';
-
-const API_BASE_URL = 'http://localhost:3000/api'; // still here if needed
+import { toast } from 'react-toastify';
 
 const AuthContext = createContext();
 
-const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
-const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -22,32 +27,39 @@ const AuthProvider = ({ children }) => {
 
   // Load token on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      setToken(storedToken);
-      fetchUser(storedToken);
-    } else {
-      setLoading(false);
-    }
+    const initializeAuth = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        setToken(storedToken);
+        await fetchUser(storedToken);
+      } else {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   // Fetch user with a token
   const fetchUser = async (userToken) => {
     try {
       setLoading(true);
+      setError(null);
+      
       const response = await getMeService(userToken);
 
       if (response.success) {
         setUser(response.data);
         setIsLoggedIn(true);
-        setError(null);
       } else {
         throw new Error(response.message || 'Failed to fetch user data.');
       }
     } catch (err) {
       console.error('AuthContext fetchUser error:', err);
-      logout();
+      // If token is invalid, clear it
+      await logout();
       setError(err.message);
+      toast.error('Session expired. Please log in again.');
     } finally {
       setLoading(false);
     }
@@ -56,77 +68,141 @@ const AuthProvider = ({ children }) => {
   // Login
   const login = async (email, password) => {
     try {
-      const data = await loginService(email, password);
+      setLoading(true);
+      setError(null);
+      
+      const response = await loginService(email, password);
 
-      if (!data.success) {
-        console.error('Login failed:', data.message);
+      if (!response.success) {
+        const errorMsg = response.message || 'Login failed';
+        setError(errorMsg);
+        toast.error(errorMsg);
         return false;
       }
 
-      const token = data.data?.token;
-      if (!token) {
-        console.error('No token received');
+      // Handle nested data structure from your API response
+      const newToken = response.data?.data?.token || response.data?.token;
+      
+      if (!newToken) {
+        const errorMsg = 'No authentication token received';
+        setError(errorMsg);
+        toast.error(errorMsg);
         return false;
       }
 
-      localStorage.setItem('token', token);
-      setToken(token);
-      await fetchUser(token);
+      localStorage.setItem('token', newToken);
+      setToken(newToken);
+      await fetchUser(newToken);
+      toast.success('Logged in successfully!');
       return true;
     } catch (error) {
       console.error('Login error:', error);
+      const errorMsg = 'Network error or login failed';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Register (no auto-login, since verification required)
+  // Register
   const register = async (username, email, password) => {
     try {
-      const data = await registerService(username, email, password);
+      setLoading(true);
+      setError(null);
+      
+      const response = await registerService(username, email, password);
 
-      if (!data.success) {
-        console.error('Signup failed:', data.message);
+      if (!response.success) {
+        const errorMsg = response.message || 'Registration failed';
+        setError(errorMsg);
+        toast.error(errorMsg);
         return false;
       }
 
-      console.log('Signup successful:', data);
-      return true; // let frontend show "check your email"
+      // Check if registration includes auto-login with token
+      const newToken = response.data?.data?.token || response.data?.token;
+      
+      if (newToken) {
+        // Auto-login after registration
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
+        await fetchUser(newToken);
+        toast.success('Account created and logged in successfully!');
+      } else {
+        // Registration successful but requires email verification
+        toast.success('Account created! Please check your email to verify your account.');
+      }
+      
+      return true;
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('Registration error:', error);
+      const errorMsg = 'Network error or registration failed';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
   // Logout
   const logout = async () => {
     try {
-      await logoutService(token); // in case backend needs cleanup
+      // Call backend logout if token exists
+      if (token) {
+        await logoutService(token);
+      }
     } catch (err) {
       console.error('Logout service error:', err);
+      // Don't show error to user as logout should always succeed locally
     }
 
+    // Clear local state regardless of backend response
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
     setIsLoggedIn(false);
     setError(null);
     setLoading(false);
+    
+    toast.success('Logged out successfully!');
+  };
+
+  // Check if user is authenticated (useful for route protection)
+  const isAuthenticated = () => {
+    return isLoggedIn && user && token;
+  };
+
+  // Refresh user data (useful after profile updates)
+  const refreshUser = async () => {
+    if (token) {
+      await fetchUser(token);
+    }
   };
 
   const value = {
+    // State
     user,
     token,
     isLoggedIn,
     loading,
     error,
+    
+    // Actions
     login,
     register,
     logout,
+    refreshUser,
+    
+    // Utilities
+    isAuthenticated,
   };
 
   return (
-    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
   );
 };
-
-export { AuthContext, AuthProvider, useAuth };
